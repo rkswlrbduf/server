@@ -1,0 +1,48 @@
+#!/usr/bin/env node
+/* ================================================================
+ * nohup by xdf(xudafeng[at]126.com)
+ *
+ * first created at : Mon Sep 14 2015 13:58:24 GMT+0800 (CST)
+ *
+ * ================================================================
+ * Copyright 2013 xdf
+ *
+ * Licensed under the MIT License
+ * You may not use this file except in compliance with the License.
+ *
+ * ================================================================ */
+
+'use strict';
+
+var fs = require('fs');
+var args = process.argv.splice(2);
+var exec = require('child_process').exec;
+
+function main(cmd, options, callback) {
+
+  if (/^win/.test(process.platform)) {
+    var cmdEscape = cmd.replace(/"/g, '""');
+    var file = '.nohup.cmd.vbs';
+
+    var shell = [];
+    shell.push('Dim shell');
+    shell.push(os.EOL);
+    shell.push('Set shell=Wscript.CreateObject("WScript.Shell")');
+    shell.push(os.EOL);
+    shell.push('shell.Run "cmd.exe /c start /b ' + cmdEscape + '", 0, TRUE');
+    fs.writeFileSync(file, shell);
+
+    exec('cscript.exe /nologo "' + file + '"', options, function() {
+      fs.unlinkSync(file);
+      if (callback) {
+        callback();
+      }
+    });
+  } else {
+    exec('nohup ' + cmd + ' > /dev/null 2>&1 &', options, callback);
+  }
+}
+
+main(args.join(' '), function() {
+  console.log('nohup success.');
+});
